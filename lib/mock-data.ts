@@ -226,3 +226,74 @@ export const graphEdges: { from: string; to: string; label: string }[] = [
   { from: "sop-114", to: "eng-chen", label: "authored by" },
   { from: "overheat", to: "bearing", label: "leads to" },
 ]
+
+export const analyticsKpis: {
+  key: string
+  label: string
+  value: string
+  delta: string
+  trend: Trend
+  hint: string
+}[] = [
+  { key: "mtbf", label: "Mean Time Between Failures", value: "412 hrs", delta: "+18%", trend: "up", hint: "vs last quarter" },
+  { key: "mttr", label: "Mean Time to Repair", value: "3.2 hrs", delta: "-22%", trend: "down", hint: "improved response" },
+  { key: "oee", label: "Overall Equipment Effectiveness", value: "86.4%", delta: "+2.1%", trend: "up", hint: "fleet average" },
+  { key: "savings", label: "AI-Driven Savings (YTD)", value: "$1.4M", delta: "+$180k", trend: "up", hint: "avoided downtime" },
+]
+
+export const plantMetrics = [
+  { plant: "Plant 1", uptime: 98.7, oee: 88.2, incidents: 4, mtbf: 428, health: 84 },
+  { plant: "Plant 2", uptime: 97.9, oee: 85.6, incidents: 6, mtbf: 396, health: 79 },
+  { plant: "Pump Station 2", uptime: 99.2, oee: 91.4, incidents: 1, mtbf: 512, health: 92 },
+  { plant: "Warehouse East", uptime: 94.8, oee: 72.1, incidents: 9, mtbf: 284, health: 61 },
+]
+
+export const costSavingsTrend = [
+  { month: "Jan", predictive: 42000, avoided: 18000 },
+  { month: "Feb", predictive: 38000, avoided: 22000 },
+  { month: "Mar", predictive: 51000, avoided: 14000 },
+  { month: "Apr", predictive: 47000, avoided: 31000 },
+  { month: "May", predictive: 54000, avoided: 28000 },
+  { month: "Jun", predictive: 49000, avoided: 35000 },
+  { month: "Jul", predictive: 62000, avoided: 41000 },
+]
+
+export const auditSchedule = [
+  { id: "as1", standard: "OSHA 1910.147", area: "Plant 2 · Steam", status: "Compliant" as const, lastAudit: "2025-06-15", nextDue: "2025-12-15", owner: "J. Okafor" },
+  { id: "as2", standard: "API 510", area: "Boiler B-1", status: "Non-Compliant" as const, lastAudit: "2024-11-02", nextDue: "Overdue", owner: "M. Chen" },
+  { id: "as3", standard: "NFPA 25", area: "Warehouse East", status: "Pending Review" as const, lastAudit: "2025-05-20", nextDue: "2025-08-20", owner: "A. Rivera" },
+  { id: "as4", standard: "ISO 45001", area: "Plant 1 · Hall B", status: "Compliant" as const, lastAudit: "2025-07-01", nextDue: "2026-01-01", owner: "S. Patel" },
+  { id: "as5", standard: "EPA 40 CFR", area: "Cooling Tower CT-2", status: "Compliant" as const, lastAudit: "2025-06-28", nextDue: "2025-12-28", owner: "S. Patel" },
+  { id: "as6", standard: "LOTO Procedure", area: "Valve V-114", status: "Non-Compliant" as const, lastAudit: "—", nextDue: "Action required", owner: "M. Chen" },
+]
+
+export const recommendationSummary = {
+  open: 4,
+  approved: 12,
+  dismissed: 3,
+  totalSavings: "$225k",
+}
+
+export const recommendationHistory = [
+  { id: "RH-118", title: "Intercooler descale", asset: "Air Compressor C-3", status: "Approved" as const, date: "2025-07-01", outcome: "$18k energy saved" },
+  { id: "RH-117", title: "Fan belt tension adjustment", asset: "Cooling Tower CT-2", status: "Approved" as const, date: "2025-06-24", outcome: "Prevented 4 hr outage" },
+  { id: "RH-116", title: "Seal replacement deferral", asset: "Centrifugal Pump P-114", status: "Dismissed" as const, date: "2025-06-18", outcome: "Risk accepted" },
+  { id: "RH-115", title: "Thermal scan follow-up", asset: "Gas Turbine A-7", status: "Approved" as const, date: "2025-06-10", outcome: "Fault confirmed early" },
+  { id: "RH-114", title: "Conveyor alignment check", asset: "Conveyor Belt CV-9", status: "Dismissed" as const, date: "2025-06-02", outcome: "Scheduled manually" },
+]
+
+export const graphStats = [
+  { label: "Total Nodes", value: "1,284", hint: "equipment, SOPs, people" },
+  { label: "Relationships", value: "4,892", hint: "typed edges" },
+  { label: "Document Links", value: "18,930", hint: "indexed references" },
+  { label: "Coverage", value: "94%", hint: "assets mapped" },
+]
+
+export const graphEntityIndex = [
+  { id: "gt-a7", label: "Turbine A-7", type: "Equipment", relations: 4, documents: 214, status: "At Risk" as const },
+  { id: "cmp-c3", label: "Compressor C-3", type: "Equipment", relations: 3, documents: 152, status: "Monitor" as const },
+  { id: "pmp-114", label: "Pump P-114", type: "Equipment", relations: 3, documents: 96, status: "Operational" as const },
+  { id: "bearing", label: "Bearing Fault", type: "Failure Mode", relations: 2, documents: 18, status: "High" as const },
+  { id: "sop-114", label: "SOP-114", type: "Procedure", relations: 2, documents: 4, status: "Review" as const },
+  { id: "eng-chen", label: "M. Chen", type: "Engineer", relations: 3, documents: 0, status: "Active" as const },
+]
