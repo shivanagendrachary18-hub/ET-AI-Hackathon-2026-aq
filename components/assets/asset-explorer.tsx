@@ -3,10 +3,18 @@
 import { useMemo, useState } from "react"
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  BrainCircuit,
   Calendar,
+  CheckCircle2,
+  CircleAlert,
   FileText,
+  Lightbulb,
   MapPin,
   Search,
+  ShieldCheck,
+  Sparkles,
   Wrench,
 } from "lucide-react"
 
@@ -15,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { SeverityBadge } from "@/components/severity-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { assets, maintenanceTimeline, recentUploads, type Asset } from "@/lib/mock-data"
+import { assets, maintenanceTimeline, recommendations, recentUploads, workOrders, type Asset } from "@/lib/mock-data"
 
 const incidents = [
   { id: "in1", date: "2025-07-06", title: "High vibration alarm", severity: "high" },
@@ -30,88 +38,161 @@ function healthColor(h: number) {
   return "text-destructive"
 }
 
+function RootCauseAnalysis({ asset }: { asset: Asset }) {
+  const recommendation = recommendations.find((item) => item.asset === asset.name)
+  const workOrder = workOrders.find((item) => item.asset === asset.name)
+  const isRisk = asset.status === "At Risk" || asset.status === "Critical"
+  const probability = asset.status === "Critical" ? 87 : asset.status === "At Risk" ? 87 : asset.status === "Monitor" ? 48 : 18
+
+  if (!isRisk) {
+    return (
+      <div className="rounded-xl border border-chart-3/25 bg-chart-3/5 p-4">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-chart-3" />
+          <div>
+            <p className="text-sm font-semibold">AI assessment: no immediate failure pattern</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {asset.name} is currently {asset.status.toLowerCase()} with a health score of {asset.health}/100. Continue scheduled monitoring and maintenance.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const causes = asset.name.includes("Turbine A-7")
+    ? [
+        { title: "Bearing degradation", detail: "Early-stage inner-race fault signature detected in vibration spectrum.", strength: 92, source: "Turbine-A7-Inspection.pdf · p. 12" },
+        { title: "Rising vibration", detail: "Recent vibration alarm is consistent with the predicted bearing fault progression.", strength: 86, source: "Gearbox-Vibration-Report.pdf · p. 4" },
+        { title: "Temperature anomaly", detail: "Temperature threshold was exceeded during the latest operating cycle.", strength: 74, source: "Maintenance incident log · 2025-05-02" },
+      ]
+    : asset.name.includes("Conveyor Belt CV-9")
+      ? [
+          { title: "Drive motor bearing wear", detail: "Thermal and acoustic indicators point to imminent bearing seizure.", strength: 94, source: "Predictive maintenance record · CV-09" },
+          { title: "Repeated incidents", detail: "Five recorded incidents indicate a deteriorating maintenance pattern.", strength: 88, source: "Asset incident history" },
+          { title: "Reactive maintenance pressure", detail: "The latest work order is overdue, increasing operational exposure.", strength: 82, source: "WO-4821 · Current register" },
+        ]
+      : [
+          { title: "Asset health deterioration", detail: `${asset.name} has a ${asset.health}/100 health score and requires elevated attention.`, strength: 78, source: "Asset health register" },
+          { title: "Maintenance history", detail: `${asset.incidents} recorded incident${asset.incidents === 1 ? "" : "s"} is contributing to the current risk assessment.`, strength: 68, source: "Asset incident history" },
+        ]
+
+  return (
+    <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
+            <BrainCircuit className="size-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold">AI Root Cause Analysis</p>
+              <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent">{probability}% risk</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Evidence-weighted explanation of the current asset risk.</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">AI confidence</p>
+          <p className="text-lg font-bold tabular-nums text-accent">{recommendation?.confidence ?? 82}%</p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2">
+        {causes.map((cause, index) => (
+          <div key={cause.title} className="relative flex gap-3 rounded-lg border border-border bg-background/40 p-3">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold">{index + 1}</div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium">{cause.title}</p>
+                <span className="text-xs font-semibold text-muted-foreground">{cause.strength}% evidence</span>
+              </div>
+              <Progress value={cause.strength} className="mt-2 h-1" />
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{cause.detail}</p>
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary">
+                <FileText className="size-3" />
+                {cause.source}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
+        <div className="rounded-lg border border-border bg-background/50 p-3 text-center">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Signals</p>
+          <p className="mt-1 text-sm font-semibold">Anomalies detected</p>
+        </div>
+        <ArrowRight className="hidden size-4 text-muted-foreground sm:block" />
+        <div className="rounded-lg border border-accent/30 bg-accent/10 p-3 text-center">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Diagnosis</p>
+          <p className="mt-1 text-sm font-semibold">{causes[0].title}</p>
+        </div>
+        <ArrowRight className="hidden size-4 text-muted-foreground sm:block" />
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-center">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Prediction</p>
+          <p className="mt-1 text-sm font-semibold">{probability}% failure risk</p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-border bg-secondary/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-2">
+          <Lightbulb className="mt-0.5 size-4 shrink-0 text-accent" />
+          <div>
+            <p className="text-xs font-semibold">Recommended action</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{recommendation?.title ?? "Schedule an engineering inspection"}</p>
+          </div>
+        </div>
+        {workOrder && (
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium">
+            <Wrench className="size-3" />
+            {workOrder.id} · {workOrder.status}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function AssetExplorer() {
   const [query, setQuery] = useState("")
   const [selectedId, setSelectedId] = useState<string>(assets[0].id)
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
-    return assets.filter(
-      (a) =>
-        a.name.toLowerCase().includes(q) ||
-        a.tag.toLowerCase().includes(q) ||
-        a.type.toLowerCase().includes(q) ||
-        a.location.toLowerCase().includes(q),
-    )
+    return assets.filter((a) => a.name.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q) || a.type.toLowerCase().includes(q) || a.location.toLowerCase().includes(q))
   }, [query])
 
   const selected = assets.find((a) => a.id === selectedId) as Asset
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr] xl:grid-cols-[1fr_1.3fr]">
-      {/* List */}
       <div className="flex flex-col gap-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search equipment by name, tag, type or location…"
-            className="h-10 bg-secondary/50 pl-9"
-          />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search equipment by name, tag, type or location…" className="h-10 bg-secondary/50 pl-9" />
         </div>
-
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => setSelectedId(a.id)}
-              className={cn(
-                "glass flex flex-col gap-3 rounded-xl border p-4 text-left transition-colors",
-                a.id === selectedId
-                  ? "border-primary ring-1 ring-primary/40"
-                  : "border-border hover:border-primary/40",
-              )}
-            >
+            <button key={a.id} onClick={() => setSelectedId(a.id)} className={cn("glass flex flex-col gap-3 rounded-xl border p-4 text-left transition-colors", a.id === selectedId ? "border-primary ring-1 ring-primary/40" : "border-border hover:border-primary/40")}>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{a.name}</p>
-                  <p className="font-mono text-xs text-muted-foreground">{a.tag}</p>
-                </div>
+                <div className="min-w-0"><p className="truncate text-sm font-semibold">{a.name}</p><p className="font-mono text-xs text-muted-foreground">{a.tag}</p></div>
                 <SeverityBadge level={a.status} />
               </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="size-3" />
-                {a.location}
-              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" />{a.location}</div>
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Health</span>
-                  <span className={cn("font-semibold tabular-nums", healthColor(a.health))}>
-                    {a.health}%
-                  </span>
-                </div>
+                <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">Health</span><span className={cn("font-semibold tabular-nums", healthColor(a.health))}>{a.health}%</span></div>
                 <Progress value={a.health} className="h-1.5" />
               </div>
             </button>
           ))}
-          {filtered.length === 0 && (
-            <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
-              No equipment matches “{query}”.
-            </p>
-          )}
+          {filtered.length === 0 && <p className="col-span-full py-8 text-center text-sm text-muted-foreground">No equipment matches “{query}”.</p>}
         </div>
       </div>
 
-      {/* Detail */}
       <div className="glass flex flex-col gap-4 rounded-xl border border-border p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold">{selected.name}</h3>
-            <p className="font-mono text-xs text-muted-foreground">
-              {selected.tag} · {selected.type}
-            </p>
-          </div>
+          <div><h3 className="text-lg font-semibold">{selected.name}</h3><p className="font-mono text-xs text-muted-foreground">{selected.tag} · {selected.type}</p></div>
           <SeverityBadge level={selected.status} />
         </div>
 
@@ -121,70 +202,27 @@ export function AssetExplorer() {
             { label: "Documents", value: selected.docs, cls: "text-foreground" },
             { label: "Incidents", value: selected.incidents, cls: "text-foreground" },
             { label: "Last service", value: selected.lastService.slice(5), cls: "text-foreground" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-lg border border-border bg-secondary/30 p-3">
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className={cn("mt-1 text-lg font-semibold tabular-nums", s.cls)}>{s.value}</p>
-            </div>
-          ))}
+          ].map((s) => <div key={s.label} className="rounded-lg border border-border bg-secondary/30 p-3"><p className="text-xs text-muted-foreground">{s.label}</p><p className={cn("mt-1 text-lg font-semibold tabular-nums", s.cls)}>{s.value}</p></div>)}
         </div>
+
+        <RootCauseAnalysis asset={selected} />
 
         <Tabs defaultValue="history" className="mt-1">
           <TabsList>
-            <TabsTrigger value="history">
-              <Wrench data-icon="inline-start" />
-              History
-            </TabsTrigger>
-            <TabsTrigger value="documents">
-              <FileText data-icon="inline-start" />
-              Documents
-            </TabsTrigger>
-            <TabsTrigger value="incidents">
-              <AlertTriangle data-icon="inline-start" />
-              Incidents
-            </TabsTrigger>
+            <TabsTrigger value="history"><Wrench data-icon="inline-start" />History</TabsTrigger>
+            <TabsTrigger value="documents"><FileText data-icon="inline-start" />Documents</TabsTrigger>
+            <TabsTrigger value="incidents"><AlertTriangle data-icon="inline-start" />Incidents</TabsTrigger>
           </TabsList>
-
           <TabsContent value="history" className="pt-4">
             <ol className="relative ml-3 border-l border-border">
-              {maintenanceTimeline.map((t) => (
-                <li key={t.id} className="mb-5 ml-5 last:mb-0">
-                  <span className="absolute -left-[7px] mt-1 size-3 rounded-full border-2 border-background bg-primary" />
-                  <div className="flex items-center gap-2">
-                    <Calendar className="size-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">{t.date}</span>
-                  </div>
-                  <p className="mt-1 text-sm font-medium">{t.title}</p>
-                  <p className="text-xs text-muted-foreground">{t.meta}</p>
-                </li>
-              ))}
+              {maintenanceTimeline.map((t) => <li key={t.id} className="mb-5 ml-5 last:mb-0"><span className="absolute -left-[7px] mt-1 size-3 rounded-full border-2 border-background bg-primary" /><div className="flex items-center gap-2"><Calendar className="size-3 text-muted-foreground" /><span className="text-xs text-muted-foreground">{t.date}</span></div><p className="mt-1 text-sm font-medium">{t.title}</p><p className="text-xs text-muted-foreground">{t.meta}</p></li>)}
             </ol>
           </TabsContent>
-
           <TabsContent value="documents" className="flex flex-col gap-2 pt-4">
-            {recentUploads.slice(0, 4).map((d) => (
-              <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-2.5">
-                <div className="flex size-9 items-center justify-center rounded-md bg-primary/15 text-[10px] font-semibold text-primary">
-                  {d.type}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{d.name}</p>
-                  <p className="text-xs text-muted-foreground">{d.size}</p>
-                </div>
-              </div>
-            ))}
+            {recentUploads.slice(0, 4).map((d) => <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-2.5"><div className="flex size-9 items-center justify-center rounded-md bg-primary/15 text-[10px] font-semibold text-primary">{d.type}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{d.name}</p><p className="text-xs text-muted-foreground">{d.size}</p></div></div>)}
           </TabsContent>
-
           <TabsContent value="incidents" className="flex flex-col gap-2 pt-4">
-            {incidents.map((i) => (
-              <div key={i.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{i.title}</p>
-                  <p className="text-xs text-muted-foreground">{i.date}</p>
-                </div>
-                <SeverityBadge level={i.severity} />
-              </div>
-            ))}
+            {incidents.map((i) => <div key={i.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3"><div className="min-w-0"><p className="truncate text-sm font-medium">{i.title}</p><p className="text-xs text-muted-foreground">{i.date}</p></div><SeverityBadge level={i.severity} /></div>)}
           </TabsContent>
         </Tabs>
       </div>
